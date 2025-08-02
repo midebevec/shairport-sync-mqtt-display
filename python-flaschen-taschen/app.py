@@ -28,7 +28,7 @@ print("Using default cover image file {}".format(default_image_file))
 
 # App will die here if config file is missing.
 # Read only on startup. If edited, app must be relaunched to see changes
-config_file = mypath / "config.yaml"
+config_file = "/etc/shairport-sync-mqtt-listener.yaml"
 print("Using config file {}".format(config_file))
 with config_file.open() as f:
     config = safe_load(f)
