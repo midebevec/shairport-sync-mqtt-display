@@ -99,18 +99,15 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
         # Hardware mode - use config from YAML
         hw_config = flaschen_config['hardware']
         
-        cmd.append(f'--led-gpio-mapping={hw_config["led_gpio_mapping"]}')
-        cmd.append(f'--led-slowdown-gpio={hw_config["led_slowdown_gpio"]}')
         cmd.append(f'--led-rows={height}')
         cmd.append(f'--led-cols={width}')
-        cmd.append(f'--led-brightness={hw_config["led_brightness"]}')
         
         if hw_config.get('led_show_refresh', False):
             cmd.append('--led-show-refresh')
         
         # Add any additional hardware options from config
         for key, value in hw_config.items():
-            if key.startswith('led_') and key not in ['led_gpio_mapping', 'led_slowdown_gpio', 'led_brightness', 'led_show_refresh']:
+            if key.startswith('led_') and key not in ['led_show_refresh']:
                 if isinstance(value, bool):
                     if value:
                         cmd.append(f'--{key.replace("_", "-")}')
