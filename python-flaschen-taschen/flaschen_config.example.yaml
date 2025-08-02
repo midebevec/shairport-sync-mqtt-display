@@ -1,0 +1,43 @@
+# Flaschen Taschen Hardware Configuration Example
+# Copy this to flaschen_config.yaml and customize for your setup
+
+# Hardware display settings (used when --no-terminal is specified)
+hardware:
+  # GPIO mapping for LED matrix - common values:
+  # "regular", "adafruit-hat", "adafruit-hat-pwm", "compute-module"
+  led_gpio_mapping: "adafruit-hat"
+  
+  # GPIO slowdown (helps with timing issues on some Pi models)
+  # Higher values = slower but more stable. Try 2-4 for Pi 3/4
+  led_slowdown_gpio: 2
+  
+  # LED brightness (0-100)
+  led_brightness: 50
+  
+  # Show refresh rate on display
+  led_show_refresh: true
+  
+  # Uncomment and modify these advanced options as needed:
+  
+  # led_scan_mode: 0              # 0=progressive, 1=interlaced
+  # led_pwm_bits: 11              # PWM bits (1-11, higher = better color)
+  # led_pwm_lsb_nanoseconds: 130  # PWM timing
+  # led_pwm_dither_bits: 0        # Dithering (0-2)
+  # led_limit_refresh: 0          # Limit refresh rate (Hz, 0=no limit)
+  # led_inverse: false            # Invert display
+  # led_rgb_sequence: "RGB"       # Color sequence: RGB, RBG, GRB, etc.
+  # led_pixel_mapper: ""          # Pixel mapping (for complex layouts)
+  # led_panel_type: ""            # Panel type if not auto-detected
+
+# Terminal display settings (used by default or with --terminal)
+terminal:
+  # Use high-definition terminal display (better for larger displays)
+  hd_terminal: true
+
+# General server settings
+server:
+  # Layer timeout in seconds (how long to keep a layer active without updates)
+  layer_timeout: 15
+  
+  # Run as daemon (background process) - usually false for this launcher
+  daemon: false

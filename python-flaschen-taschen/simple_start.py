@@ -23,6 +23,47 @@ import time
 import signal
 import os
 from pathlib import Path
+from yaml import safe_load
+
+
+def load_flaschen_config():
+    """Load flaschen hardware configuration from YAML file."""
+    config_file = Path("flaschen_config.yaml")
+    
+    # Default configuration
+    default_config = {
+        'hardware': {
+            'led_gpio_mapping': 'adafruit-hat',
+            'led_slowdown_gpio': 2,
+            'led_brightness': 50,
+            'led_show_refresh': True
+        },
+        'terminal': {
+            'hd_terminal': True
+        },
+        'server': {
+            'layer_timeout': 15,
+            'daemon': False
+        }
+    }
+    
+    if config_file.exists():
+        try:
+            with config_file.open() as f:
+                config = safe_load(f)
+                # Merge with defaults
+                for section in default_config:
+                    if section in config:
+                        default_config[section].update(config[section])
+                print(f"Loaded flaschen config from {config_file}")
+                return default_config
+        except Exception as e:
+            print(f"Warning: Could not load {config_file}: {e}")
+            print("Using default flaschen configuration")
+    else:
+        print(f"No {config_file} found, using defaults")
+    
+    return default_config
 
 
 def find_ft_server():
@@ -44,22 +85,51 @@ def find_ft_server():
     return None
 
 
-def start_ft_server(server_path, use_terminal=True, width=64, height=64, brightness=50):
+def start_ft_server(server_path, use_terminal=True, width=64, height=64, flaschen_config=None):
     """Start the flaschen-taschen server."""
-    cmd = [str(server_path)]
-
-    # Add display size
-    if not use_terminal:
-        cmd.append(f'--led-gpio-mapping=adafruit-hat')
-        cmd.append(f'--led-slowdown-gpio=2')
-        cmd.append(f'--led-rows={width}')
-        cmd.append(f'--led-cols={height}')
-        cmd.append(f'--led-brightness={brightness}')
+    if flaschen_config is None:
+        flaschen_config = load_flaschen_config()
     
-    # Add terminal option for testing
-    if use_terminal:
-        cmd.append('--hd-terminal')
-        cmd.append(f'-D{width}x{height}')
+    cmd = [str(server_path)]
+    
+    # Add display size
+    cmd.append(f'-D{width}x{height}')
+
+    if not use_terminal:
+        # Hardware mode - use config from YAML
+        hw_config = flaschen_config['hardware']
+        
+        cmd.append(f'--led-gpio-mapping={hw_config["led_gpio_mapping"]}')
+        cmd.append(f'--led-slowdown-gpio={hw_config["led_slowdown_gpio"]}')
+        cmd.append(f'--led-rows={height}')
+        cmd.append(f'--led-cols={width}')
+        cmd.append(f'--led-brightness={hw_config["led_brightness"]}')
+        
+        if hw_config.get('led_show_refresh', False):
+            cmd.append('--led-show-refresh')
+        
+        # Add any additional hardware options from config
+        for key, value in hw_config.items():
+            if key.startswith('led_') and key not in ['led_gpio_mapping', 'led_slowdown_gpio', 'led_brightness', 'led_show_refresh']:
+                if isinstance(value, bool):
+                    if value:
+                        cmd.append(f'--{key.replace("_", "-")}')
+                else:
+                    cmd.append(f'--{key.replace("_", "-")}={value}')
+    
+    else:
+        # Terminal mode - use config from YAML
+        term_config = flaschen_config['terminal']
+        if term_config.get('hd_terminal', True):
+            cmd.append('--hd-terminal')
+    
+    # Add server options
+    server_config = flaschen_config['server']
+    if server_config.get('layer_timeout'):
+        cmd.append(f'--layer-timeout={server_config["layer_timeout"]}')
+    
+    if server_config.get('daemon', False):
+        cmd.append('-d')
     
     print(f"Starting flaschen-taschen server: {' '.join(cmd)}")
     
@@ -105,8 +175,12 @@ Examples:
     python3 simple_start.py                                    # Auto-find server, use terminal
     python3 simple_start.py --server-path ./ft-server          # Specify server path
     python3 simple_start.py --server-path /usr/bin/ft-server   # Use installed server
+    python3 simple_start.py --no-terminal                      # Use hardware backend
     
 Note: This script starts the flaschen server, then runs the existing app.py
+
+Hardware options are loaded from flaschen_config.yaml. Create this file to 
+customize LED matrix settings like GPIO mapping, brightness, etc.
 """
     )
     
@@ -173,8 +247,11 @@ Note: This script starts the flaschen server, then runs the existing app.py
     print(f"Display size: {width}x{height}")
     print(f"Backend: {'terminal' if use_terminal else 'hardware'}")
     
+    # Load flaschen hardware configuration
+    flaschen_config = load_flaschen_config()
+    
     # Start the flaschen server
-    server_process = start_ft_server(server_path, use_terminal, width, height)
+    server_process = start_ft_server(server_path, use_terminal, width, height, flaschen_config)
     
     if not server_process:
         print("Failed to start flaschen-taschen server")

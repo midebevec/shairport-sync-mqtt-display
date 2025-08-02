@@ -68,11 +68,29 @@ python3 simple_start.py --server-path /path/to/flaschen-taschen/server/ft-server
 
 ## Configuration
 
-The scripts automatically read your `config.yaml` file to get:
-- Display dimensions (`led-rows`, `led-columns`)
-- Server port (`port`)
+The scripts automatically read configuration from two files:
 
-Make sure your `config.yaml` is properly configured for your MQTT broker and display setup.
+### 1. `config.yaml` (MQTT and Display Settings)
+- Display dimensions (`led-rows`, `led-columns`) 
+- Server port (`port`)
+- MQTT broker settings
+
+### 2. `flaschen_config.yaml` (Hardware Settings - New!)
+- LED matrix hardware options (GPIO mapping, brightness, etc.)
+- Terminal display settings
+- Server options
+
+**To create hardware config:**
+```bash
+cp flaschen_config.example.yaml flaschen_config.yaml
+# Edit flaschen_config.yaml for your hardware setup
+```
+
+**Key hardware settings:**
+- `led_gpio_mapping`: GPIO mapping ("adafruit-hat", "regular", etc.)
+- `led_brightness`: LED brightness (0-100)
+- `led_slowdown_gpio`: Timing adjustment for different Pi models
+- `led_show_refresh`: Show refresh rate on display
 
 ## Usage Examples
 
