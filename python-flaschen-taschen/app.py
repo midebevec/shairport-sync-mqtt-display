@@ -158,7 +158,7 @@ def createMatrixImage(fileobj):
         if hasattr(fileobj, 'name'):
             print(fileobj.name, end=' ')
         print(image.format, f"{image.size} x {image.mode}")
-        image.thumbnail(size, Image.ANTIALIAS)
+        image.thumbnail(size, Image.LANCZOS)
         background = Image.new('RGBA', size, (0, 0, 0, 0))
         background.paste(image, (int((size[0] - image.size[0]) / 2), int((size[1] - image.size[1]) / 2)))
         return background
