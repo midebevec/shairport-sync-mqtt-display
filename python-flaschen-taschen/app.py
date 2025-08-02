@@ -220,10 +220,9 @@ mqttc.connect(mqtt_host, port=mqtt_port)
 # loop_start run a thread in the background
 mqttc.loop_start()
 
-
-
 # launch the Flask (+socketio) webserver!
 if __name__ == "__main__":
     
+    main()
     while True:
         time.sleep(1)

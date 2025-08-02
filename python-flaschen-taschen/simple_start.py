@@ -32,6 +32,7 @@ def find_ft_server():
         '../flaschen-taschen/server/ft-server', 
         '~/flaschen-taschen/server/ft-server',
         '/usr/local/bin/ft-server',
+        '~/projects/flaschen-taschen/server/ft-server',
         'ft-server'  # In PATH
     ]
     
@@ -43,16 +44,22 @@ def find_ft_server():
     return None
 
 
-def start_ft_server(server_path, use_terminal=True, width=32, height=32):
+def start_ft_server(server_path, use_terminal=True, width=64, height=64, brightness=50):
     """Start the flaschen-taschen server."""
     cmd = [str(server_path)]
-    
+
     # Add display size
-    cmd.append(f'-D{width}x{height}')
+    if not use_terminal:
+        cmd.append(f'--led-gpio-mapping=adafruit-hat')
+        cmd.append(f'--led-slowdown-gpio=2')
+        cmd.append(f'--led-rows={width}')
+        cmd.append(f'--led-cols={height}')
+        cmd.append(f'--led-brightness={brightness}')
     
     # Add terminal option for testing
     if use_terminal:
         cmd.append('--hd-terminal')
+        cmd.append(f'-D{width}x{height}')
     
     print(f"Starting flaschen-taschen server: {' '.join(cmd)}")
     
@@ -160,8 +167,8 @@ Note: This script starts the flaschen server, then runs the existing app.py
         height = FLASCHEN_ROWS
     except ImportError:
         print("Warning: Could not import config from app.py, using defaults")
-        width = 32
-        height = 32
+        width = 64
+        height = 64
         
     print(f"Display size: {width}x{height}")
     print(f"Backend: {'terminal' if use_terminal else 'hardware'}")
