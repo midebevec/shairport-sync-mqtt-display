@@ -94,6 +94,7 @@ def find_ft_server():
         './ft-server',
         '../flaschen-taschen/server/ft-server',
         '~/flaschen-taschen/server/ft-server',
+        '~/projects/flaschen-taschen/server/ft-server',
         'ft-server'  # in PATH
     ]
     
