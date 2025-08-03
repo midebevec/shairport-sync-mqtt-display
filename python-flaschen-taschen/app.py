@@ -41,6 +41,7 @@ def main(configs):
 
 def create_flaschen_client(flaschen_config):
     """Create and return a Flaschen client instance."""
+    print(f"Creating Flaschen client with config: {flaschen_config}")
     return flaschen.Flaschen(
         flaschen_config.get("server", 'localhost'),
         flaschen_config.get("port", 1337),
