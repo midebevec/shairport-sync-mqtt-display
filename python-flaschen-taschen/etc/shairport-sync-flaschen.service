@@ -1,0 +1,34 @@
+[Unit]
+Description=Shairport Sync MQTT to Flaschen Taschen Display
+Documentation=https://github.com/midebevec/shairport-sync-mqtt-display
+After=network.target mosquitto.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
+# Note: This assumes a virtual environment exists at ./venv/
+# Create it with: python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+ExecStart=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/venv/bin/python /home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/simple_start.py --no-terminal
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
+Environment=HOME=/root
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp /var/tmp
+
+# Resource limits
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

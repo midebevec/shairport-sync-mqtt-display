@@ -14,7 +14,7 @@ from yaml import safe_load
 import flaschen
 import mqtt_listener
 
-CONFIG_FILE = Path("/etc/shairport-sync-mqtt-listener.yaml")
+CONFIG_FILE = Path("/etc/shairport-sync-flaschen/config.yaml")
 
 def load_configs():
     """Load configuration from YAML file."""
