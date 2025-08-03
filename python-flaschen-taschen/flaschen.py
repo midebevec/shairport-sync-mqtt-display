@@ -66,3 +66,25 @@ class Flaschen(object):
   def send(self):
     '''Send the updated pixels to the display.'''
     self._sock.send(self._data)
+
+  def send_image(self, image):
+    '''Send a PIL image to the display.
+
+    Args:
+      image: A PIL Image object with mode 'RGB' or 'RGBA'.
+    '''
+    if image.mode not in ['RGB', 'RGBA']:
+      raise ValueError("Image must be in RGB or RGBA mode")
+    
+    for x in range(self.width):
+      for y in range(self.height):
+        color = image.getpixel((x, y))
+        if image.mode == 'RGBA':
+          color = color[:3]  # Ignore alpha channel
+        self.set(x, y, color)
+    
+    self.send()
+
+  def get_size(self):
+    '''Get the size of the display as a tuple (width, height).'''
+    return (self.width, self.height)

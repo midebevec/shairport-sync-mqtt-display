@@ -20,8 +20,6 @@ import argparse
 import subprocess
 import sys
 import time
-import signal
-import os
 from pathlib import Path
 from yaml import safe_load
 
@@ -132,13 +130,12 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
     
     try:
         # Start the server process
+        cmd = ['sudo'] + cmd
+
         process = subprocess.Popen(
             cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            universal_newlines=True
+            stdout=None,  # Let it write to console
+            stderr=None,  # Let it write to console
         )
         
         # Give it a moment to start and check if it's running
@@ -149,9 +146,8 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
             return process
         else:
             # Server exited immediately, something went wrong
-            output, _ = process.communicate()
             print(f"✗ Failed to start flaschen-taschen server")
-            print(f"Output: {output}")
+            print("Check the output above for error details")
             return None
             
     except FileNotFoundError:
@@ -232,15 +228,12 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         use_terminal = True  # Default to terminal for safety
         
     # Load config to get display dimensions
-    try:
-        from app import FLASCHEN_COLS, FLASCHEN_ROWS
-        width = FLASCHEN_COLS
-        height = FLASCHEN_ROWS
-    except ImportError:
-        print("Warning: Could not import config from app.py, using defaults")
-        width = 64
-        height = 64
-        
+    from app import load_configs
+    configs = load_configs()
+    flaschen_config_1 = configs.get('flaschen', {})
+    width = flaschen_config_1.get('led-columns', 64)
+    height = flaschen_config_1.get('led-rows', 64)
+
     print(f"Display size: {width}x{height}")
     print(f"Backend: {'terminal' if use_terminal else 'hardware'}")
     
@@ -265,22 +258,17 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         
         # Import and run the existing app
         # The app.py module will handle MQTT connection and start its main loop
-        import app
+        from app import main as app_main
         
         # The app.py should now run its main loop
         # If it doesn't have a main loop, we'll add one
-        if hasattr(app, '__name__') and app.__name__ == '__main__':
-            # app.py has its own main execution
-            pass
-        else:
-            # We need to keep the process alive
-            print("MQTT listener started. Press Ctrl+C to stop all services.")
-            try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print("\nReceived interrupt signal...")
-                
+        app_main(configs)
+        while True:
+            time.sleep(1)
+    except ImportError:
+        print("✗ Could not import app.py. Make sure it exists in the current directory.")
+        server_process.terminate()
+        sys.exit(1)             
     except KeyboardInterrupt:
         print("\nShutting down...")
     except Exception as e:
