@@ -41,9 +41,11 @@ pip install -r requirements.txt
 Copy the example config file (`config.example.yaml`) to a new file and customize.
 
 ```shell
-cp config.example.yaml config.secrets.yaml
-$EDITOR config.secrets.yaml # $EDITOR would be nano, vi, etc.
+cp config.example.yaml config.yaml
+$EDITOR config.yaml # $EDITOR would be nano, vi, etc.
 ```
+
+**Note**: The launcher script will use `config.yaml`, but when installed as a system service, the configuration will be copied to `/etc/shairport-sync-flaschen/config.yaml`.
 
 #### Configure the MQTT section (`mqtt:`) to reflect your environment.
 
@@ -120,21 +122,116 @@ $ make FT_BACKEND=rgb-matrix
 
 ### Client
 
-FIXME:
+The MQTT client is implemented in this directory. You can run it in several ways:
 
-This is command line examples, demo apps, and finally the app found here (it acts as a client).
+#### Using the Launcher Script (Recommended)
+
+Use `simple_start.py` to automatically start both the flaschen-taschen server and MQTT listener:
+
+```shell
+# For terminal display (testing)
+python3 simple_start.py
+
+# For hardware LED matrix
+python3 simple_start.py --no-terminal
+
+# With custom server path
+python3 simple_start.py --server-path /path/to/ft-server
+```
+
+See [LAUNCHER_README.md](LAUNCHER_README.md) for detailed usage information.
+
+#### Running Components Separately
+
+You can also run the MQTT listener independently if you have a flaschen-taschen server already running:
+
+```shell
+python3 app.py
+```
 
 Automatically launch on boot
 ----------------------------
 
-FIXME:
+This project now includes a modern systemd service for automatic startup. The service setup has been completely updated from the old approach.
 
-There's a `systemd` service file at `/etc/shairport-sync_rgb-matrix-server.service` in this git repository.
+### Service Installation
 
-There's a `systemd` service file at `/etc/shairport-sync_rgb-matrix-client.service` in this git repository.
+1. **Install the service** using the provided setup script:
+   ```shell
+   sudo ./etc/setup-service.sh install
+   ```
+
+   This will:
+   - Create `/etc/shairport-sync-flaschen/` directory
+   - Copy your `config.yaml` to `/etc/shairport-sync-flaschen/config.yaml`
+   - Install the systemd service file
+   - Validate prerequisites (virtual environment, dependencies)
+
+2. **Enable automatic startup**:
+   ```shell
+   sudo systemctl enable shairport-sync-flaschen
+   ```
+
+3. **Start the service**:
+   ```shell
+   sudo systemctl start shairport-sync-flaschen
+   ```
+
+### Service Management
+
+- **Check status**: `sudo systemctl status shairport-sync-flaschen`
+- **View logs**: `sudo journalctl -u shairport-sync-flaschen -f`
+- **Stop service**: `sudo systemctl stop shairport-sync-flaschen`
+- **Disable auto-start**: `sudo systemctl disable shairport-sync-flaschen`
+- **Uninstall**: `sudo ./etc/setup-service.sh uninstall`
+
+### Service Features
+
+- **Uses virtual environment**: Proper Python dependency isolation
+- **Hardware backend**: Automatically uses `--no-terminal` for LED matrix output
+- **Runs as root**: Required for GPIO access to LED matrices
+- **Auto-restart**: Service restarts automatically if it crashes
+- **Proper dependencies**: Waits for network and MQTT broker
+- **System integration**: Follows Linux service best practices
+
+See [etc/README.md](etc/README.md) for detailed service documentation.
 
 troubleshooting running
 -----------------------
+
+### Running the Launcher
+
+#### Server binary not found
+```
+✗ Could not find ft-server binary
+```
+
+**Solution**: Compile the flaschen-taschen server or provide the path:
+```shell
+python3 simple_start.py --server-path /path/to/ft-server
+```
+
+#### MQTT connection issues
+If you see MQTT connection errors, check your configuration:
+- Verify MQTT broker is running and accessible
+- Check `config.yaml` MQTT settings
+- Ensure the topic matches your shairport-sync configuration
+
+### Service Issues
+
+#### Service won't start
+Check the service status and logs:
+```shell
+sudo systemctl status shairport-sync-flaschen
+sudo journalctl -u shairport-sync-flaschen -n 50
+```
+
+Common issues:
+- Virtual environment missing or incomplete
+- Configuration file errors
+- ft-server binary not found or not executable
+
+### Network Issues
 
 #### Name or service not known
 
