@@ -113,8 +113,7 @@ class MQTTListener:
             print(message.topic, len(message.payload))
             try:
                 image = createMatrixImage(io.BytesIO(message.payload), self.flaschen_client.get_size())
-                msg = {"data": image}
-                self.flaschen_client.send_image(msg)
+                self.flaschen_client.send_image(image)
             except Exception as e:
                 print(f"Error processing cover art: {e}")
                 self.clear_matrix()
