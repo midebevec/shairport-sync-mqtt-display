@@ -1,13 +1,13 @@
-# Flaschen Taschen + MQTT Launcher Scripts
+# Flaschen Taschen + MQTT Launcher Script
 
-This directory now contains several scripts to help you start both the flaschen-taschen server and the MQTT listener together.
+This directory contains a launcher script to help you start both the flaschen-taschen server and the MQTT listener together.
 
 ## Quick Start
 
-The easiest way to get started is with the `launch_all.py` script:
+Use the `simple_start.py` script to launch everything:
 
 ```bash
-python3 launch_all.py
+python3 simple_start.py
 ```
 
 This will:
@@ -16,24 +16,14 @@ This will:
 3. Start the MQTT listener
 4. Handle clean shutdown when you press Ctrl+C
 
-## Available Scripts
+## The Launcher Script
 
-### 1. `launch_all.py` (Recommended)
-- **Simple process manager approach**
-- Starts both flaschen server and MQTT app as separate processes
-- Handles clean shutdown of both
-- Best for most users
-
-### 2. `simple_start.py` (Advanced)
-- More options and configuration
-- Can auto-find the flaschen server binary
+### `simple_start.py` (Main Launcher)
+- Comprehensive launcher with many options
+- Can auto-find the flaschen server binary in common locations
 - Supports both terminal and hardware backends
-- Better error handling and diagnostics
-
-### 3. `start_all.py` (Experimental)
-- Includes a built-in Python terminal server
-- Most complex but most self-contained
-- Good for development/testing
+- Excellent error handling and diagnostics
+- Configurable via YAML files
 
 ## Prerequisites
 
@@ -55,7 +45,7 @@ cp ft-server /path/to/this/shairport-sync-mqtt-display/python-flaschen-taschen/
 3. **Run the launcher:**
 ```bash
 cd /path/to/shairport-sync-mqtt-display/python-flaschen-taschen/
-python3 launch_all.py
+python3 simple_start.py
 ```
 
 ### Option 2: Specify Server Path
@@ -96,7 +86,7 @@ cp flaschen_config.example.yaml flaschen_config.yaml
 
 ### Basic usage with auto-detection:
 ```bash
-python3 launch_all.py
+python3 simple_start.py
 ```
 
 ### Using specific server path:
@@ -107,6 +97,11 @@ python3 simple_start.py --server-path ./ft-server --terminal
 ### Force hardware backend (for LED matrices):
 ```bash
 python3 simple_start.py --server-path ./ft-server --no-terminal
+```
+
+### Show server output for debugging:
+```bash
+python3 simple_start.py --verbose-server
 ```
 
 ## Display Modes
@@ -155,7 +150,7 @@ To test that everything works:
 
 1. Start the services:
    ```bash
-   python3 launch_all.py
+   python3 simple_start.py
    ```
 
 2. In another terminal, send a test image:
@@ -168,7 +163,7 @@ To test that everything works:
 ## Original Scripts
 
 - `app.py` - Original MQTT listener (still works independently if server is running)
-- Use these new launchers instead of running `app.py` directly
+- Use `simple_start.py` instead of running `app.py` directly for convenience
 
 ## For Production
 
