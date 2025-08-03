@@ -26,14 +26,26 @@ from pathlib import Path
 from yaml import safe_load
 
 
-# Global variable to track server process for signal handling
+# Global variables to track processes for signal handling
 server_process = None
+mqtt_listener = None
 
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully."""
-    global server_process
+    global server_process, mqtt_listener
     print("\nReceived shutdown signal, cleaning up...")
+    
+    # Stop MQTT listener first
+    if mqtt_listener:
+        print("Stopping MQTT listener...")
+        try:
+            mqtt_listener.disconnect()
+            print("✓ MQTT listener stopped")
+        except Exception as e:
+            print(f"Error stopping MQTT listener: {e}")
+    
+    # Stop flaschen server
     if server_process and server_process.poll() is None:
         print("Stopping flaschen-taschen server...")
         try:
@@ -188,7 +200,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, main_co
 
 
 def main():
-    global server_process
+    global server_process, mqtt_listener
     
     # Set up signal handlers for clean shutdown
     signal.signal(signal.SIGINT, signal_handler)
@@ -297,7 +309,7 @@ file from config.example.yaml to customize MQTT, display, and LED matrix setting
         # Import and run the existing app
         # The app.py module will handle MQTT connection and start its main loop
         from app import main as app_main
-        app_main(configs)
+        mqtt_listener = app_main(configs)
 
         print("✓ MQTT listener started successfully")
         print("\nServices running. Press Ctrl+C to stop.")

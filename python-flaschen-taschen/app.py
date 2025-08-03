@@ -38,6 +38,9 @@ def main(configs):
     mqtt_host = mqtt_config["host"]
     mqtt_port = mqtt_config["port"]
     mqtt_listener.connect(mqtt_host, mqtt_port)
+    
+    # Return the listener to keep it in scope
+    return mqtt_listener
 
 def create_flaschen_client(flaschen_config):
     """Create and return a Flaschen client instance."""
@@ -76,7 +79,7 @@ def create_mqtt_listener(mqtt_config, flaschen_client):
 if __name__ == "__main__":
     try:
         configs = load_configs()
-        main(configs)
+        mqtt_listener =main(configs)
     except FileNotFoundError as e:
         print(f"Error: {e}")
     except Exception as e:
@@ -90,3 +93,5 @@ if __name__ == "__main__":
             time.sleep(1)
     except KeyboardInterrupt:
         print("Shutting down")
+        mqtt_listener.disconnect()
+        print("Disconnected from MQTT broker")

@@ -34,13 +34,20 @@ def createMatrixImage(fileobj, matrix_size=(64, 64)):
 
 class MQTTListener:
     """Class to handle MQTT connections and messages."""
+    
+    _instance_count = 0
 
     def __init__(self, topic_root, flaschen_client: Flaschen):
+        MQTTListener._instance_count += 1
+        self.instance_id = MQTTListener._instance_count
+        
         self.mqtt_client = mqtt.Client()
         self.flaschen_client = flaschen_client
         self.topic_root = topic_root
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
+        self.mqtt_client.on_disconnect = self.on_disconnect
+        print(f"MQTTListener #{self.instance_id} initialized for topic root: {topic_root}")
 
     def __del__(self):
         self.disconnect()
@@ -71,8 +78,14 @@ class MQTTListener:
 
     def connect(self, host, port=1883):
         """Connect to the MQTT broker."""
-        self.mqtt_client.connect(host, port)
-        self.mqtt_client.loop_start()
+        print(f"MQTT #{self.instance_id} attempting connection to {host}:{port}")
+        try:
+            self.mqtt_client.connect(host, port)
+            self.mqtt_client.loop_start()
+            print(f"MQTT #{self.instance_id} loop started")
+        except Exception as e:
+            print(f"MQTT #{self.instance_id} connection failed: {e}")
+            raise
 
     def disconnect(self):
         """Disconnect from the MQTT broker."""
@@ -87,7 +100,13 @@ class MQTTListener:
         for lost/re-connections to MQTT server.
         """
 
-        # print("Connected with result code {}".format(rc))
+        print(f"MQTT #{self.instance_id} connected with result code {rc} (flags: {flags})")
+        
+        # Check if this is a reconnection
+        if flags.get('session present', False):
+            print(f"MQTT #{self.instance_id} reconnected to existing session")
+        else:
+            print(f"MQTT #{self.instance_id} new session established")
 
         subtopic_list = list(known_core_metadata_types.keys())
         subtopic_list.extend(list(known_play_metadata_types.keys()))
@@ -96,6 +115,13 @@ class MQTTListener:
             topic = self._form_subtopic_topic(subtopic)
             (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
             print(f"topic {topic} {msg_id}")  # Print on one line with proper newline
+
+    def on_disconnect(self, client, userdata, rc):
+        """Handle MQTT disconnection."""
+        if rc != 0:
+            print(f"MQTT #{self.instance_id} unexpected disconnection (code: {rc}). Will auto-reconnect.")
+        else:
+            print(f"MQTT #{self.instance_id} disconnected normally")
 
     def on_message(self, client, userdata, message):
         """Handle incoming MQTT messages."""
