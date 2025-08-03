@@ -65,7 +65,7 @@ def get_flaschen_server_config(main_config):
         'terminal': {
             'hd_terminal': True
         },
-        'server': {
+        'server_settings': {
             'daemon': False,
         }
     }
