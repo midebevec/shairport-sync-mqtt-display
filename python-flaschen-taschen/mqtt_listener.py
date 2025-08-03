@@ -49,9 +49,6 @@ class MQTTListener:
         self.mqtt_client.on_disconnect = self.on_disconnect
         print(f"MQTTListener #{self.instance_id} initialized for topic root: {topic_root}")
 
-    def __del__(self):
-        self.disconnect()
-
     def set_login(self, username, password= None):
         """Set MQTT client login credentials."""
         if password:
