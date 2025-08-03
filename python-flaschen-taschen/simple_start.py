@@ -163,14 +163,14 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+                env=dict(os.environ, TERM='dumb', DISPLAY=''),  # Disable terminal features
+                start_new_session=True,  # Start in new session
             )
         
         # Give it a moment to start and check if it's running
         time.sleep(3)
-        
-        # Clear any potential escape sequences that might have leaked
-        print("\033[2J\033[H", end="", flush=True)
         
         if process.poll() is None:
             print("✓ Flaschen-taschen server started successfully")
