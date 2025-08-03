@@ -136,7 +136,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, main_co
             cmd.append('--hd-terminal')
     
     # Add server options
-    server_config = flaschen_config['server']
+    server_config = flaschen_config['server_settings']
     if server_config.get('layer_timeout'):
         cmd.append(f'--layer-timeout={server_config["layer_timeout"]}')
     
