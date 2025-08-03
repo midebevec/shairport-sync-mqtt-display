@@ -93,9 +93,8 @@ class MQTTListener:
 
         for subtopic in subtopic_list:
             topic = self._form_subtopic_topic(subtopic)
-            print("topic", topic, end=" ")
             (result, msg_id) = client.subscribe(topic, 0)  # QoS==0 should be fine
-            print(msg_id)
+            print(f"topic {topic} {msg_id}")  # Print on one line with proper newline
 
     def on_message(self, client, userdata, message):
         """Handle incoming MQTT messages."""

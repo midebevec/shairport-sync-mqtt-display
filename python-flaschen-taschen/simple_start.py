@@ -145,6 +145,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
         
         if process.poll() is None:
             print("✓ Flaschen-taschen server started successfully")
+            sys.stdout.flush()  # Force output to appear immediately
             return process
         else:
             # Server exited immediately, something went wrong
@@ -153,6 +154,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
                 print("Check the output above for error details")
             else:
                 print("Run with --verbose-server to see error details")
+            sys.stdout.flush()
             return None
             
     except FileNotFoundError:
@@ -246,6 +248,7 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
 
     print(f"Display size: {width}x{height}")
     print(f"Backend: {'terminal' if use_terminal else 'hardware'}")
+    sys.stdout.flush()
     
     # Load flaschen hardware configuration
     flaschen_config = load_flaschen_config()
@@ -258,13 +261,15 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         sys.exit(1)
         
     # Give the server a moment to fully initialize
-    print("Waiting for server to initialize...")
+    print("\nWaiting for server to initialize...")
+    sys.stdout.flush()
     time.sleep(5)
     
     try:
         print("\n" + "="*60)
         print("Starting MQTT listener (app.py)...")
         print("="*60)
+        sys.stdout.flush()
         
         # Import and run the existing app
         # The app.py module will handle MQTT connection and start its main loop
