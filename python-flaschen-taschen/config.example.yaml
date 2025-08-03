@@ -51,7 +51,7 @@ flaschen:
     hd_terminal: true
   
   # General server settings
-  server:
+  server_settings:
     # Layer timeout in seconds (how long to keep a layer active without updates)
     # layer_timeout: 15
     
