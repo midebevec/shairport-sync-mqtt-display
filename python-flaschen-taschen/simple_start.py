@@ -21,8 +21,33 @@ import subprocess
 import sys
 import time
 import os
+import signal
 from pathlib import Path
 from yaml import safe_load
+
+
+# Global variable to track server process for signal handling
+server_process = None
+
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    global server_process
+    print("\nReceived shutdown signal, cleaning up...")
+    if server_process and server_process.poll() is None:
+        print("Stopping flaschen-taschen server...")
+        try:
+            # Try to terminate gracefully first
+            server_process.terminate()
+            server_process.wait(timeout=3)
+            print("✓ Server stopped gracefully")
+        except subprocess.TimeoutExpired:
+            print("Server didn't stop gracefully, killing...")
+            server_process.kill()
+            server_process.wait()
+            print("✓ Server killed")
+    print("Cleanup complete.")
+    sys.exit(0)
 
 
 def load_flaschen_config():
@@ -129,25 +154,33 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
     print(f"Starting flaschen-taschen server: {' '.join(cmd)}")
     
     try:
+        # Clear terminal and reset cursor before starting anything
+        print("\033[2J\033[H", end="", flush=True)
+        
         # Redirect output to prevent terminal control sequences from interfering
         if verbose:
             # Show server output (may interfere with formatting)
             process = subprocess.Popen(cmd)
         else:
-            # Properly suppress output and run with clean environment
+            # Start server completely isolated
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                env=dict(os.environ, TERM='dumb'),  # Disable terminal features
+                stdin=subprocess.DEVNULL,
+                env=dict(os.environ, TERM='dumb', DISPLAY=''),  # Disable terminal features
+                start_new_session=True,  # Start in new session
             )
         
         # Give it a moment to start and check if it's running
-        time.sleep(2)
+        time.sleep(3)
+        
+        # Clear any potential escape sequences that might have leaked
+        print("\033[2J\033[H", end="", flush=True)
         
         if process.poll() is None:
-            print("\n✓ Flaschen-taschen server started successfully")
-            sys.stdout.flush()  # Force output to appear immediately
+            print("✓ Flaschen-taschen server started successfully")
+            sys.stdout.flush()
             return process
         else:
             # Server exited immediately, something went wrong
@@ -169,6 +202,12 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
 
 
 def main():
+    global server_process
+    
+    # Set up signal handlers for clean shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
     parser = argparse.ArgumentParser(
         description='Start flaschen-taschen server and MQTT listener',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -263,7 +302,7 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         sys.exit(1)
         
     # Give the server a moment to fully initialize
-    print("\nWaiting for server to initialize...")
+    print("Waiting for server to initialize...")
     sys.stdout.flush()
     time.sleep(5)
     
@@ -273,40 +312,26 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         print("="*60)
         sys.stdout.flush()
         
-        # # Import and run the existing app
-        # # The app.py module will handle MQTT connection and start its main loop
-        # from app import main as app_main
+        # Import and run the existing app
+        # The app.py module will handle MQTT connection and start its main loop
+        from app import main as app_main
+        app_main(configs)
+
+        print("✓ MQTT listener started successfully")
+        print("\nServices running. Press Ctrl+C to stop.")
+        sys.stdout.flush()
         
-        # # The app.py should now run its main loop
-        # # If it doesn't have a main loop, we'll add one
-        # app_main(configs)
+        # Keep the application running until interrupted
+        # This is necessary because MQTT uses background threads
         while True:
             time.sleep(1)
-    except ImportError:
-        print("✗ Could not import app.py. Make sure it exists in the current directory.")
-        server_process.terminate()
-        sys.exit(1)             
-    except KeyboardInterrupt:
-        print("\nShutting down...")
-    except Exception as e:
-        print(f"Error running MQTT listener: {e}")
-    finally:
-        # Clean up: terminate the server process
-        if server_process and server_process.poll() is None:
-            print("Stopping flaschen-taschen server...")
-            server_process.terminate()
             
-            # Give it a few seconds to terminate gracefully
-            try:
-                server_process.wait(timeout=5)
-                print("✓ Server stopped gracefully")
-            except subprocess.TimeoutExpired:
-                print("Server didn't stop gracefully, killing...")
-                server_process.kill()
-                server_process.wait()
-                print("✓ Server killed")
-                
-        print("All services stopped.")
+    except KeyboardInterrupt:
+        # This should be handled by signal_handler now
+        pass
+    except Exception as e:
+        print(f"Error: {e}")
+        signal_handler(None, None)  # Clean shutdown
 
 
 if __name__ == "__main__":
