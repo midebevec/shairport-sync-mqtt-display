@@ -41,6 +41,9 @@ class MQTTListener:
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
 
+    def __del__(self):
+        self.disconnect()
+
     def set_login(self, username, password= None):
         """Set MQTT client login credentials."""
         if password:

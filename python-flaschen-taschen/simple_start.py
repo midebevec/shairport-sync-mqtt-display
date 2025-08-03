@@ -82,13 +82,13 @@ def find_ft_server():
     return None
 
 
-def start_ft_server(server_path, use_terminal=True, width=64, height=64, flaschen_config=None):
+def start_ft_server(server_path, use_terminal=True, width=64, height=64, flaschen_config=None, verbose=False):
     """Start the flaschen-taschen server."""
     if flaschen_config is None:
         flaschen_config = load_flaschen_config()
-    
-    cmd = [str(server_path)]
-    
+
+    cmd = ['sudo', str(server_path)]
+
     # Add display size
     cmd.append(f'-D{width}x{height}')
 
@@ -128,14 +128,18 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
     print(f"Starting flaschen-taschen server: {' '.join(cmd)}")
     
     try:
-        # Start the server process
-        cmd = ['sudo'] + cmd
-
-        process = subprocess.Popen(
-            cmd,
-            stdout=None,  # Let it write to console
-            stderr=None,  # Let it write to console
-        )
+        # Redirect output to prevent terminal control sequences from interfering
+        if verbose:
+            # Show server output (may interfere with formatting)
+            process = subprocess.Popen(cmd)
+        else:
+            # Suppress output to avoid terminal interference
+            with open('/dev/null', 'w') as devnull:
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=devnull,  # Suppress output to avoid terminal interference
+                    stderr=devnull,  # Suppress stderr too
+                )
         
         # Give it a moment to start and check if it's running
         time.sleep(2)
@@ -146,7 +150,10 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
         else:
             # Server exited immediately, something went wrong
             print(f"✗ Failed to start flaschen-taschen server")
-            print("Check the output above for error details")
+            if verbose:
+                print("Check the output above for error details")
+            else:
+                print("Run with --verbose-server to see error details")
             return None
             
     except FileNotFoundError:
@@ -190,6 +197,11 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         '--no-terminal',
         action='store_true', 
         help='Force hardware backend (no terminal)'
+    )
+    parser.add_argument(
+        '--verbose-server',
+        action='store_true',
+        help='Show server output (may interfere with terminal formatting)'
     )
     
     args = parser.parse_args()
@@ -240,7 +252,7 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
     flaschen_config = load_flaschen_config()
     
     # Start the flaschen server
-    server_process = start_ft_server(server_path, use_terminal, width, height, flaschen_config)
+    server_process = start_ft_server(server_path, use_terminal, width, height, flaschen_config, args.verbose_server)
     
     if not server_process:
         print("Failed to start flaschen-taschen server")

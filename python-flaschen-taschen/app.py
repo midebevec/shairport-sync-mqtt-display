@@ -89,6 +89,4 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Stopping MQTT listener...")
-        mqtt_listener.disconnect()
-        print("MQTT listener stopped.")
+        print("Shutting down")
