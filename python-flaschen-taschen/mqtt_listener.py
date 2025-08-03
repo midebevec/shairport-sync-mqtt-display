@@ -24,8 +24,9 @@ from flaschen import Flaschen
 def createMatrixImage(fileobj, matrix_size=(64, 64)):
     with Image.open(fileobj) as image:
         if hasattr(fileobj, 'name'):
-            print(fileobj.name, end=' ')
-        print(image.format, f"{image.size} x {image.mode}")
+            print(f"{fileobj.name} {image.format} {image.size} x {image.mode}")
+        else:
+            print(f"{image.format} {image.size} x {image.mode}")
         image.thumbnail(matrix_size, Image.LANCZOS)
         background = Image.new('RGBA', matrix_size, (0, 0, 0, 0))
         background.paste(image, (int((matrix_size[0] - image.size[0]) / 2), int((matrix_size[1] - image.size[1]) / 2)))

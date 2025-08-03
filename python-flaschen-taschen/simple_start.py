@@ -20,6 +20,7 @@ import argparse
 import subprocess
 import sys
 import time
+import os
 from pathlib import Path
 from yaml import safe_load
 
@@ -133,18 +134,19 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
             # Show server output (may interfere with formatting)
             process = subprocess.Popen(cmd)
         else:
-            # Properly suppress output to avoid terminal interference
+            # Properly suppress output and run with clean environment
             process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.DEVNULL,  # Suppress output
-                stderr=subprocess.DEVNULL,  # Suppress stderr
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                env=dict(os.environ, TERM='dumb'),  # Disable terminal features
             )
         
         # Give it a moment to start and check if it's running
         time.sleep(2)
         
         if process.poll() is None:
-            print("✓ Flaschen-taschen server started successfully")
+            print("\n✓ Flaschen-taschen server started successfully")
             sys.stdout.flush()  # Force output to appear immediately
             return process
         else:
@@ -308,4 +310,6 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
 
 
 if __name__ == "__main__":
+    # Force line buffering for clean output
+    sys.stdout.reconfigure(line_buffering=True)
     main()
