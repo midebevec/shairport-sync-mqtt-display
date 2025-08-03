@@ -58,29 +58,29 @@ python3 simple_start.py --server-path /path/to/flaschen-taschen/server/ft-server
 
 ## Configuration
 
-The scripts automatically read configuration from two files:
+The script automatically reads configuration from a single file:
 
-### 1. `config.yaml` (MQTT and Display Settings)
-- Display dimensions (`led-rows`, `led-columns`) 
-- Server port (`port`)
-- MQTT broker settings
+### `config.yaml` (All Settings)
+This file contains all configuration including:
+- **MQTT broker settings** (host, port, credentials, TLS)
+- **Display dimensions** (`led-rows`, `led-columns`) 
+- **Server connection** (`server`, `port`)
+- **Hardware LED matrix options** (GPIO mapping, brightness, etc.)
+- **Terminal display settings**
+- **Server options** (layer timeout, daemon mode)
 
-### 2. `flaschen_config.yaml` (Hardware Settings - New!)
-- LED matrix hardware options (GPIO mapping, brightness, etc.)
-- Terminal display settings
-- Server options
-
-**To create hardware config:**
+**To create your config:**
 ```bash
-cp flaschen_config.example.yaml flaschen_config.yaml
-# Edit flaschen_config.yaml for your hardware setup
+cp config.example.yaml config.yaml
+# Edit config.yaml for your setup
 ```
 
-**Key hardware settings:**
-- `led_gpio_mapping`: GPIO mapping ("adafruit-hat", "regular", etc.)
-- `led_brightness`: LED brightness (0-100)
-- `led_slowdown_gpio`: Timing adjustment for different Pi models
-- `led_show_refresh`: Show refresh rate on display
+**Key sections:**
+- `mqtt`: MQTT broker connection and topic settings
+- `flaschen.server/port`: Connection to flaschen-taschen server  
+- `flaschen.hardware`: LED matrix hardware options (GPIO mapping, brightness, etc.)
+- `flaschen.terminal`: Terminal display settings
+- `flaschen.server`: Server behavior options
 
 ## Usage Examples
 

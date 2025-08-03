@@ -50,14 +50,14 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
-def load_flaschen_config():
-    """Load flaschen hardware configuration from YAML file."""
-    config_file = Path("flaschen_config.yaml")
+def get_flaschen_server_config(main_config):
+    """Extract flaschen server configuration from main config with defaults."""
+    flaschen_config = main_config.get('flaschen', {})
     
     # Default configuration
     default_config = {
         'hardware': {
-            'led_gpio_mapping': 'adafruit-hat',
+            'led_gpio_mapping': 'adafruit-hat-pwm',
             'led_slowdown_gpio': 2,
             'led_brightness': 50,
             'led_show_refresh': True
@@ -66,25 +66,14 @@ def load_flaschen_config():
             'hd_terminal': True
         },
         'server': {
-            'daemon': False
+            'daemon': False,
         }
     }
     
-    if config_file.exists():
-        try:
-            with config_file.open() as f:
-                config = safe_load(f)
-                # Merge with defaults
-                for section in default_config:
-                    if section in config:
-                        default_config[section].update(config[section])
-                print(f"Loaded flaschen config from {config_file}")
-                return default_config
-        except Exception as e:
-            print(f"Warning: Could not load {config_file}: {e}")
-            print("Using default flaschen configuration")
-    else:
-        print(f"No {config_file} found, using defaults")
+    # Merge with configuration from main config file
+    for section in default_config:
+        if section in flaschen_config:
+            default_config[section].update(flaschen_config[section])
     
     return default_config
 
@@ -108,10 +97,13 @@ def find_ft_server():
     return None
 
 
-def start_ft_server(server_path, use_terminal=True, width=64, height=64, flaschen_config=None, verbose=False):
+def start_ft_server(server_path, use_terminal=True, width=64, height=64, main_config=None, verbose=False):
     """Start the flaschen-taschen server."""
-    if flaschen_config is None:
-        flaschen_config = load_flaschen_config()
+    if main_config is None:
+        # Fallback to defaults if no config provided
+        main_config = {}
+    
+    flaschen_config = get_flaschen_server_config(main_config)
 
     cmd = ['sudo', str(server_path)]
 
@@ -214,8 +206,8 @@ Examples:
     
 Note: This script starts the flaschen server, then runs the existing app.py
 
-Hardware options are loaded from flaschen_config.yaml. Create this file to 
-customize LED matrix settings like GPIO mapping, brightness, etc.
+All options including hardware settings are loaded from config.yaml. Create this 
+file from config.example.yaml to customize MQTT, display, and LED matrix settings.
 """
     )
     
@@ -277,19 +269,15 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
     # Load config to get display dimensions
     from app import load_configs
     configs = load_configs()
-    flaschen_config_1 = configs.get('flaschen', {})
-    width = flaschen_config_1.get('led-columns', 64)
-    height = flaschen_config_1.get('led-rows', 64)
+    width = configs.get('flaschen', {}).get('led-columns', 64)
+    height = configs.get('flaschen', {}).get('led-rows', 64)
 
     print(f"Display size: {width}x{height}")
     print(f"Backend: {'terminal' if use_terminal else 'hardware'}")
     sys.stdout.flush()
     
-    # Load flaschen hardware configuration
-    flaschen_config = load_flaschen_config()
-    
     # Start the flaschen server
-    server_process = start_ft_server(server_path, use_terminal, width, height, flaschen_config, args.verbose_server)
+    server_process = start_ft_server(server_path, use_terminal, width, height, configs, args.verbose_server)
     
     if not server_process:
         print("Failed to start flaschen-taschen server")
