@@ -273,13 +273,13 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         print("="*60)
         sys.stdout.flush()
         
-        # Import and run the existing app
-        # The app.py module will handle MQTT connection and start its main loop
-        from app import main as app_main
+        # # Import and run the existing app
+        # # The app.py module will handle MQTT connection and start its main loop
+        # from app import main as app_main
         
-        # The app.py should now run its main loop
-        # If it doesn't have a main loop, we'll add one
-        app_main(configs)
+        # # The app.py should now run its main loop
+        # # If it doesn't have a main loop, we'll add one
+        # app_main(configs)
         while True:
             time.sleep(1)
     except ImportError:
