@@ -153,10 +153,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
     
     print(f"Starting flaschen-taschen server: {' '.join(cmd)}")
     
-    try:
-        # Clear terminal and reset cursor before starting anything
-        print("\033[2J\033[H", end="", flush=True)
-        
+    try:        
         # Redirect output to prevent terminal control sequences from interfering
         if verbose:
             # Show server output (may interfere with formatting)
@@ -166,10 +163,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                stdin=subprocess.DEVNULL,
-                env=dict(os.environ, TERM='dumb', DISPLAY=''),  # Disable terminal features
-                start_new_session=True,  # Start in new session
+                stderr=subprocess.DEVNULL
             )
         
         # Give it a moment to start and check if it's running
