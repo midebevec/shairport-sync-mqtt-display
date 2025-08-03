@@ -133,13 +133,11 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, flasche
             # Show server output (may interfere with formatting)
             process = subprocess.Popen(cmd)
         else:
-            # Suppress output to avoid terminal interference
-            with open('/dev/null', 'w') as devnull:
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=devnull,  # Suppress output to avoid terminal interference
-                    stderr=devnull,  # Suppress stderr too
-                )
+            process = subprocess.Popen(
+                cmd,
+                stdout=None,  # Suppress output
+                stderr=None, # Suppress stderr
+            )
         
         # Give it a moment to start and check if it's running
         time.sleep(2)
