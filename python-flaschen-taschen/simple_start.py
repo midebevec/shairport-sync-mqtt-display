@@ -40,7 +40,6 @@ def load_flaschen_config():
             'hd_terminal': True
         },
         'server': {
-            'layer_timeout': 15,
             'daemon': False
         }
     }
@@ -249,7 +248,7 @@ customize LED matrix settings like GPIO mapping, brightness, etc.
         
     # Give the server a moment to fully initialize
     print("Waiting for server to initialize...")
-    time.sleep(3)
+    time.sleep(5)
     
     try:
         print("\n" + "="*60)
