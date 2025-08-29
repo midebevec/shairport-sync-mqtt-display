@@ -9,8 +9,8 @@ Type=simple
 User=root
 Group=root
 WorkingDirectory=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
-# Note: This assumes a virtual environment exists at ./venv/
-# Create it with: python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+# Use the virtual environment Python directly
+# Note: Service runs as root, so ft-server must be accessible to root user
 ExecStart=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/venv/bin/python /home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/simple_start.py --no-terminal
 Restart=always
 RestartSec=5
@@ -20,12 +20,13 @@ StandardError=journal
 # Environment variables
 Environment=PYTHONPATH=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
 Environment=HOME=/root
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/midebevec/projects/flaschen-taschen/server:/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
 
 # Security settings
 NoNewPrivileges=true
 ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/tmp /var/tmp
+ProtectHome=false
+ReadWritePaths=/tmp /var/tmp /home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen /home/midebevec/projects/flaschen-taschen
 
 # Resource limits
 MemoryMax=256M

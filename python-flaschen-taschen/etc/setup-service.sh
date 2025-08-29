@@ -25,6 +25,37 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Function to create virtual environment
+create_venv() {
+    echo "Creating virtual environment..."
+    cd "$PROJECT_DIR"
+    
+    if ! command -v python3 &> /dev/null; then
+        echo "Error: python3 is not installed"
+        exit 1
+    fi
+    
+    python3 -m venv venv
+    
+    if [[ ! -f "venv/bin/activate" ]]; then
+        echo "Error: Failed to create virtual environment"
+        exit 1
+    fi
+    
+    echo "Installing Python packages..."
+    source venv/bin/activate
+    pip install --upgrade pip
+    
+    if [[ -f "requirements.txt" ]]; then
+        pip install -r requirements.txt
+        echo "✓ Virtual environment created and packages installed"
+    else
+        echo "Warning: requirements.txt not found, installing basic packages..."
+        pip install paho-mqtt pillow pyyaml
+        echo "✓ Virtual environment created with basic packages"
+    fi
+}
+
 # Function to install the service
 install_service() {
     echo "Installing $SERVICE_NAME service..."
@@ -38,11 +69,52 @@ install_service() {
     # Check if virtual environment exists
     if [[ ! -f "$PROJECT_DIR/venv/bin/python" ]]; then
         echo "Warning: Virtual environment not found at $PROJECT_DIR/venv"
-        echo "Please create a virtual environment first:"
-        echo "  cd $PROJECT_DIR"
-        echo "  python3 -m venv venv"
-        echo "  source venv/bin/activate"
-        echo "  pip install -r requirements.txt"
+        echo ""
+        echo "The service will fallback to system python3, but it's recommended to use a virtual environment."
+        echo ""
+        echo "Would you like to create the virtual environment now?"
+        read -p "Create venv? (Y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            create_venv
+        else
+            echo "Continuing with system python3 fallback..."
+        fi
+    else
+        echo "✓ Virtual environment found at $PROJECT_DIR/venv"
+    fi
+    
+    # Check for ft-server accessibility
+    echo "Checking ft-server accessibility for root user..."
+    potential_paths=(
+        "$PROJECT_DIR/ft-server"
+        "/home/midebevec/projects/flaschen-taschen/server/ft-server"
+        "/usr/local/bin/ft-server"
+        "/usr/bin/ft-server"
+    )
+    
+    ft_server_found=false
+    for path in "${potential_paths[@]}"; do
+        if [[ -x "$path" ]]; then
+            echo "✓ Found ft-server at: $path"
+            ft_server_found=true
+            break
+        fi
+    done
+    
+    if [[ "$ft_server_found" == false ]]; then
+        echo "⚠️  Warning: ft-server not found in common locations"
+        echo "   The service may fail to start if simple_start.py can't find ft-server"
+        echo ""
+        echo "   Consider one of these options:"
+        echo "   1. Copy ft-server to the project directory:"
+        echo "      cp /path/to/ft-server $PROJECT_DIR/"
+        echo ""
+        echo "   2. Install ft-server system-wide:"
+        echo "      sudo cp /path/to/ft-server /usr/local/bin/"
+        echo ""
+        echo "   3. Create a symlink in the project directory:"
+        echo "      ln -s /path/to/ft-server $PROJECT_DIR/ft-server"
         echo ""
         read -p "Continue anyway? (y/N): " -n 1 -r
         echo
@@ -180,6 +252,7 @@ show_help() {
     echo "  install    Install the systemd service and copy config to /etc"
     echo "  uninstall  Remove the systemd service (optionally remove config)"
     echo "  status     Show service status and recent logs"
+    echo "  setup-venv Create virtual environment and install packages"
     echo "  help       Show this help message"
     echo ""
     echo "The install command will:"
@@ -188,9 +261,10 @@ show_help() {
     echo "  - Set up proper permissions"
     echo ""
     echo "Examples:"
-    echo "  sudo $0 install"
-    echo "  sudo $0 status"
-    echo "  sudo $0 uninstall"
+    echo "  sudo $0 setup-venv  # Create virtual environment (run as regular user)"
+    echo "  sudo $0 install     # Install service"
+    echo "  sudo $0 status      # Check service status"
+    echo "  sudo $0 uninstall   # Remove service"
 }
 
 # Main script logic
