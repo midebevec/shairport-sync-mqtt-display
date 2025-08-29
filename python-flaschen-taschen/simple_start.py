@@ -117,7 +117,13 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, main_co
     
     flaschen_config = get_flaschen_server_config(main_config)
 
-    cmd = ['sudo', str(server_path)]
+    # Only use sudo if not already running as root
+    if os.geteuid() == 0:
+        # Already running as root (e.g., via systemd service)
+        cmd = [str(server_path)]
+    else:
+        # Running as regular user, need sudo
+        cmd = ['sudo', str(server_path)]
 
     # Add display size
     cmd.append(f'-D{width}x{height}')
