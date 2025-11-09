@@ -58,6 +58,14 @@ flaschen:
     # Run as daemon (background process) - usually false for this launcher
     daemon: false
 
+clock:
+  # Clock display settings
+  enabled: true
+  type: "analog"  # "analog" or "digital"
+  time_window:
+    start: "08:00"  # 24-hour format
+    end: "18:00"
+
 # ---
 # mqtt:
 #   topic: 'shairport-sync/name'

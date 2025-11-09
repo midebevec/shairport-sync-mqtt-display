@@ -30,9 +30,10 @@ def load_configs():
 def main(configs):
     mqtt_config = configs["mqtt"]
     flaschen_config = configs["flaschen"]
+    clock_config = configs["clock"]
 
     flaschen_client = create_flaschen_client(flaschen_config)
-    mqtt_listener = create_mqtt_listener(mqtt_config, flaschen_client)
+    mqtt_listener = create_mqtt_listener(mqtt_config, flaschen_client, clock_config)
 
     # Connect to MQTT broker
     mqtt_host = mqtt_config["host"]
@@ -51,10 +52,10 @@ def create_flaschen_client(flaschen_config):
         flaschen_config.get("led-rows", 64)
     )
 
-def create_mqtt_listener(mqtt_config, flaschen_client):
+def create_mqtt_listener(mqtt_config, flaschen_client, clock_config):
     """Create and return an MQTTListener instance."""
     topic_root = mqtt_config.get("topic", "shairport-sync")
-    listener = mqtt_listener.MQTTListener(topic_root, flaschen_client)
+    listener = mqtt_listener.MQTTListener(topic_root, flaschen_client, clock_config)
     
     # Set login credentials if provided
     username = mqtt_config.get("username")

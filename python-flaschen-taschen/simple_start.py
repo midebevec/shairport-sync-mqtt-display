@@ -165,7 +165,7 @@ def start_ft_server(server_path, use_terminal=True, width=64, height=64, main_co
     
     try:        
         # Redirect output to prevent terminal control sequences from interfering
-        if verbose:
+        if verbose or use_terminal:
             # Show server output (may interfere with formatting)
             process = subprocess.Popen(cmd)
         else:
