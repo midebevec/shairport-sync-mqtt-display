@@ -11,7 +11,7 @@ Group=root
 WorkingDirectory=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen
 # Use the virtual environment Python directly
 # Note: Service runs as root, so ft-server must be accessible to root user
-ExecStart=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/venv/bin/python /home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/simple_start.py --no-terminal
+ExecStart=/home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/venv/bin/python /home/midebevec/projects/shairport-sync-mqtt-display/python-flaschen-taschen/simple_start.py --no-terminal --server-path=/home/midebevec/projects/flaschen-taschen/server/ft-server
 Restart=always
 RestartSec=5
 StandardOutput=journal
