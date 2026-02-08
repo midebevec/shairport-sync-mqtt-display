@@ -13,8 +13,13 @@ from yaml import safe_load
 # https://github.com/hzeller/flaschen-taschen/raw/master/api/python/flaschen.py
 import flaschen
 import mqtt_listener
+import clock
+import music
+import volume
 
 CONFIG_FILE = Path("/etc/shairport-sync-flaschen/config.yaml")
+# For Local Python Dev
+# CONFIG_FILE = Path("~/projects/shairport-sync-mqtt-display/python-flaschen-taschen/config.yaml").expanduser()
 
 def load_configs():
     """Load configuration from YAML file."""
@@ -32,30 +37,31 @@ def main(configs):
     flaschen_config = configs["flaschen"]
     clock_config = configs["clock"]
 
-    flaschen_client = create_flaschen_client(flaschen_config)
-    mqtt_listener = create_mqtt_listener(mqtt_config, flaschen_client, clock_config)
-
-    # Connect to MQTT broker
-    mqtt_host = mqtt_config["host"]
-    mqtt_port = mqtt_config["port"]
-    mqtt_listener.connect(mqtt_host, mqtt_port)
+    background_flaschen_client = create_flaschen_client(flaschen_config)
+    foreground_flaschen_client = create_flaschen_client(flaschen_config, 1, True)
+    music_client = music.Music("CONFIG_PATH", background_flaschen_client)
+    clock_client = clock.Clock("CONFIG_PATH", background_flaschen_client)
+    volume_client = volume.Volume("CONFIG_PATH", foreground_flaschen_client)
+    mqtt_listener = create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client)
     
     # Return the listener to keep it in scope
     return mqtt_listener
 
-def create_flaschen_client(flaschen_config):
+def create_flaschen_client(flaschen_config, layer= 0, transparent=False):
     """Create and return a Flaschen client instance."""
     return flaschen.Flaschen(
         flaschen_config.get("server", 'localhost'),
         flaschen_config.get("port", 1337),
         flaschen_config.get("led-columns", 64),
-        flaschen_config.get("led-rows", 64)
+        flaschen_config.get("led-rows", 64),
+        layer= layer,
+        transparent= transparent
     )
 
-def create_mqtt_listener(mqtt_config, flaschen_client, clock_config):
+def create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client):
     """Create and return an MQTTListener instance."""
     topic_root = mqtt_config.get("topic", "shairport-sync")
-    listener = mqtt_listener.MQTTListener(topic_root, flaschen_client, clock_config)
+    listener = mqtt_listener.MQTTListener(topic_root, music_client, clock_client, volume_client)
     
     # Set login credentials if provided
     username = mqtt_config.get("username")
@@ -73,6 +79,7 @@ def create_mqtt_listener(mqtt_config, flaschen_client, clock_config):
         )
 
     listener.enable_logger(mqtt_config.get("logger", False))
+    listener.set_address(mqtt_config["host"], mqtt_config["port"])
     
     return listener 
 
@@ -80,7 +87,8 @@ def create_mqtt_listener(mqtt_config, flaschen_client, clock_config):
 if __name__ == "__main__":
     try:
         configs = load_configs()
-        mqtt_listener =main(configs)
+        listener = main(configs)
+        listener.start()
     except FileNotFoundError as e:
         print(f"Error: {e}")
     except Exception as e:
@@ -94,5 +102,5 @@ if __name__ == "__main__":
             time.sleep(1)
     except KeyboardInterrupt:
         print("Shutting down")
-        mqtt_listener.disconnect()
+        listener.stop()
         print("Disconnected from MQTT broker")

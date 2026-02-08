@@ -13,6 +13,7 @@
 # along with this program.  If not, see <http://gnu.org/licenses/gpl-2.0.txt>
 
 import socket
+from PIL import Image
 
 class Flaschen(object):
   '''A Framebuffer display interface that sends a frame via UDP.'''
@@ -44,6 +45,7 @@ class Flaschen(object):
     self._data[0:len(header)] = header
     self._data[-1 * len(footer):] = footer
     self._header_len = len(header)
+    self._last_priority = None
 
   def set(self, x, y, color):
     '''Set the pixel at the given coordinates to the specified color.
@@ -67,7 +69,7 @@ class Flaschen(object):
     '''Send the updated pixels to the display.'''
     self._sock.send(self._data)
 
-  def send_image(self, image):
+  def send_image(self, image: Image, blank= False, priority= 0):
     '''Send a PIL image to the display.
 
     Args:
@@ -75,6 +77,16 @@ class Flaschen(object):
     '''
     if image.mode not in ['RGB', 'RGBA']:
       raise ValueError("Image must be in RGB or RGBA mode")
+    
+    # Don't update image if higher priority was last to send image
+    if (self._last_priority is not None) and (priority > self._last_priority):
+      return
+    
+    # Reset priority if sending blank image
+    if blank:
+      self._last_priority = None
+    else:
+      self._last_priority = priority
     
     for x in range(self.width):
       for y in range(self.height):
