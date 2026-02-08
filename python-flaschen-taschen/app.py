@@ -45,6 +45,7 @@ def main(configs):
     mqtt_listener = create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client)
     
     # Return the listener to keep it in scope
+    mqtt_listener.start()
     return mqtt_listener
 
 def create_flaschen_client(flaschen_config, layer= 0, transparent=False):
@@ -88,7 +89,6 @@ if __name__ == "__main__":
     try:
         configs = load_configs()
         listener = main(configs)
-        listener.start()
     except FileNotFoundError as e:
         print(f"Error: {e}")
     except Exception as e:

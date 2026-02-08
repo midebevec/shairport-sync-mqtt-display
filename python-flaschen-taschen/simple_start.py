@@ -40,7 +40,7 @@ def signal_handler(signum, frame):
     if mqtt_listener:
         print("Stopping MQTT listener...")
         try:
-            mqtt_listener.disconnect()
+            mqtt_listener.stop()
             print("✓ MQTT listener stopped")
         except Exception as e:
             print(f"Error stopping MQTT listener: {e}")
