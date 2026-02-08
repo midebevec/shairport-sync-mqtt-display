@@ -15,15 +15,18 @@ class Output:
         self._flaschen_client.send_image(image, blank= True, priority= self._priority)
 
     def send_io_image(self, fileobj: io.BytesIO):
-        with Image.open(fileobj) as image:
-            if hasattr(fileobj, 'name'):
-                print(f"{fileobj.name} {image.format} {image.size} x {image.mode}")
-            else:
-                print(f"{image.format} {image.size} x {image.mode}")
-            image.thumbnail(self.get_size(), Image.LANCZOS)
-            background = Image.new('RGBA', self.get_size(), (0, 0, 0, 0))
-            background.paste(image, (int((self.get_size()[0] - image.size[0]) / 2), int((self.get_size()[1] - image.size[1]) / 2)))
-            self._flaschen_client.send_image(background, blank= False, priority= self._priority)
+        try:
+            with Image.open(fileobj) as image:
+                if hasattr(fileobj, 'name'):
+                    print(f"{fileobj.name} {image.format} {image.size} x {image.mode}")
+                else:
+                    print(f"{image.format} {image.size} x {image.mode}")
+                image.thumbnail(self.get_size(), Image.LANCZOS)
+                background = Image.new('RGBA', self.get_size(), (0, 0, 0, 0))
+                background.paste(image, (int((self.get_size()[0] - image.size[0]) / 2), int((self.get_size()[1] - image.size[1]) / 2)))
+                self._flaschen_client.send_image(background, blank= False, priority= self._priority)
+        except Exception as e:
+            print(f"Error with image: {e}")
 
     def send_pil_image(self, image: Image):
         # TODO - Use matrix size to shrink image if needed
