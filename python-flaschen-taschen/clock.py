@@ -4,6 +4,9 @@ import threading
 from datetime import datetime
 import math
 import time
+from pathlib import Path
+
+from yaml import safe_load
 from flaschen import Flaschen
 from output import Output
 
@@ -20,12 +23,25 @@ class Clock(Output):
         self._reload_configs()
 
     def _reload_configs(self):
-        configs = dict()
+        configs = {
+            "enabled": True,
+            "type": "analog",
+            "start_str": "08:00",
+            "end_str": "18:00",
+        }
 
-        # TODO - Load All Configs
-        configs["type"] = "analog"
-        configs["start_str"] = "08:00"
-        configs["end_str"] = "18:00"
+        config_path = Path(self._config_path)
+        if config_path.exists():
+            with config_path.open() as handle:
+                loaded = safe_load(handle) or {}
+            clock_config = loaded.get("clock", {}) or {}
+            if isinstance(clock_config, dict):
+                configs["enabled"] = clock_config.get("enabled", True)
+                configs["type"] = clock_config.get("type", "analog")
+                time_window = clock_config.get("time_window", {}) or {}
+                if isinstance(time_window, dict):
+                    configs["start_str"] = time_window.get("start", "08:00")
+                    configs["end_str"] = time_window.get("end", "18:00")
 
         self._configs = configs
 
@@ -71,6 +87,11 @@ class Clock(Output):
                 continue
             previous_time = current_time_str
 
+            if not self._configs.get("enabled", True) or self._blank_clock:
+                self.clear_image()
+                time.sleep(1)
+                continue
+
             start_time = datetime.strptime(self._configs["start_str"], "%H:%M").time()
             end_time = datetime.strptime(self._configs["end_str"], "%H:%M").time()
 
@@ -80,7 +101,7 @@ class Clock(Output):
             else:
                 in_window = (current_time >= start_time) or (current_time <= end_time)
 
-            if not in_window or self._blank_clock:
+            if not in_window:
                 self.clear_image()
                 time.sleep(1)
                 continue
@@ -97,9 +118,9 @@ class Clock(Output):
 
     def _create_clock_image(self, current_time_str, matrix_size=(64, 64)):
         clock_type = self._configs.get("type", "analog")
-        if clock_type is "analog":
+        if clock_type == "analog":
             return self._create_analog_clock_image(current_time_str, matrix_size)
-        elif clock_type is "digital":
+        elif clock_type == "digital":
             return self._create_digital_clock_image(current_time_str, matrix_size)
 
     def _create_digital_clock_image(self, current_time_str, matrix_size=(64, 64)):

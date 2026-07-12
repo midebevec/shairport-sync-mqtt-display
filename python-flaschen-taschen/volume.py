@@ -2,11 +2,34 @@ from flaschen import Flaschen
 from output import Output
 from PIL import Image, ImageDraw
 import threading
-import time
 
 AIRPLAY_MUTE = -144.0
 AIRPLAY_MIN = -30.0
 AIRPLAY_MAX = 0.0
+
+def scaled_volume_percent(payload: str | bytes | tuple[float, ...]) -> int:
+    """Convert AirPlay volume payload to a 0-100% value using the same scaling logic as the LED display."""
+    if isinstance(payload, (bytes, bytearray)):
+        payload = payload.decode("utf-8", errors="replace")
+
+    if isinstance(payload, str):
+        parts = [float(part.strip()) for part in payload.split(",")]
+    else:
+        parts = list(payload)
+
+    if len(parts) != 4:
+        return 0
+
+    airplay_volume = float(parts[0])
+    if airplay_volume == AIRPLAY_MUTE:
+        return 0
+    if airplay_volume <= AIRPLAY_MIN:
+        return 0
+    if airplay_volume >= AIRPLAY_MAX:
+        return 100
+
+    rescaled = rescale(airplay_volume, AIRPLAY_MIN, AIRPLAY_MAX, 0, 100)
+    return max(0, min(100, int(round(rescaled))))
 
 def rescale(value, old_min, old_max, new_min, new_max):
     """
@@ -147,7 +170,7 @@ class Volume(Output):
         # Get Latest Configs
         self._reload_configs()
 
-        # Extrace and scale volume
+        # Extract and scale volume
         volume_tuple = tuple(float(x.strip()) for x in payload.decode().split(","))
         if len(volume_tuple) != 4:
             return

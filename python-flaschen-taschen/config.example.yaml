@@ -66,6 +66,11 @@ clock:
     start: "08:00"  # 24-hour format
     end: "18:00"
 
+web_server:
+  enabled: true
+  host: "0.0.0.0"
+  port: 8000
+
 # ---
 # mqtt:
 #   topic: 'shairport-sync/name'

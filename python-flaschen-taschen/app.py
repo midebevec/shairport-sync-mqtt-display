@@ -16,10 +16,12 @@ import mqtt_listener
 import clock
 import music
 import volume
+from threading import Thread
+from web_server import DisplayState, create_app
 
 CONFIG_FILE = Path("/etc/shairport-sync-flaschen/config.yaml")
 # For Local Python Dev
-# CONFIG_FILE = Path("~/projects/shairport-sync-mqtt-display/python-flaschen-taschen/config.yaml").expanduser()
+CONFIG_FILE = Path("~/projects/shairport-sync-mqtt-display/python-flaschen-taschen/config.yaml").expanduser()
 
 def load_configs():
     """Load configuration from YAML file."""
@@ -36,13 +38,23 @@ def main(configs):
     mqtt_config = configs["mqtt"]
     flaschen_config = configs["flaschen"]
     clock_config = configs["clock"]
+    web_server_config = configs.get("web_server", {})
 
+    display_state = DisplayState()
     background_flaschen_client = create_flaschen_client(flaschen_config)
     foreground_flaschen_client = create_flaschen_client(flaschen_config, 1, True)
-    music_client = music.Music("CONFIG_PATH", background_flaschen_client)
-    clock_client = clock.Clock("CONFIG_PATH", background_flaschen_client)
-    volume_client = volume.Volume("CONFIG_PATH", foreground_flaschen_client)
-    mqtt_listener = create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client)
+    music_client = music.Music(str(CONFIG_FILE), background_flaschen_client)
+    clock_client = clock.Clock(str(CONFIG_FILE), background_flaschen_client)
+    volume_client = volume.Volume(str(CONFIG_FILE), foreground_flaschen_client)
+    mqtt_listener = create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client, display_state)
+
+    if web_server_config.get("enabled", True):
+        host = web_server_config.get("host", "0.0.0.0")
+        port = web_server_config.get("port", 8000)
+        web_app = create_app(config_path=CONFIG_FILE, display_state=display_state)
+        web_thread = Thread(target=lambda: web_app.run(host=host, port=port, debug=False), daemon=True)
+        web_thread.start()
+        print(f"Web server started on http://{host}:{port}")
     
     # Return the listener to keep it in scope
     mqtt_listener.start()
@@ -59,10 +71,10 @@ def create_flaschen_client(flaschen_config, layer= 0, transparent=False):
         transparent= transparent
     )
 
-def create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client):
+def create_mqtt_listener(mqtt_config, music_client, clock_client, volume_client, display_state=None):
     """Create and return an MQTTListener instance."""
     topic_root = mqtt_config.get("topic", "shairport-sync")
-    listener = mqtt_listener.MQTTListener(topic_root, music_client, clock_client, volume_client)
+    listener = mqtt_listener.MQTTListener(topic_root, music_client, clock_client, volume_client, display_state)
     
     # Set login credentials if provided
     username = mqtt_config.get("username")

@@ -149,6 +149,14 @@ You can also run the MQTT listener independently if you have a flaschen-taschen 
 python3 app.py
 ```
 
+#### Lightweight web UI
+
+The app now also starts a small web UI for viewing recent MQTT metadata and updating clock settings in the YAML configuration.
+
+- Open http://<pi-host>:8000 after launching the app.
+- The port and host can be changed under the new `web_server` section in `config.yaml`.
+- The UI writes updates back to `config.yaml`, which the display process will use on the next reload.
+
 Automatically launch on boot
 ----------------------------
 

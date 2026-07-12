@@ -2,3 +2,4 @@ wheel
 paho-mqtt
 pyyaml
 Pillow
+Flask

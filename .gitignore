@@ -103,5 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# VS Code
+.vscode/
+
 # Configs with local info
 config.yaml

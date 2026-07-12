@@ -16,20 +16,22 @@ import paho.mqtt.client as mqtt
 from shairport_sync_metadata import known_core_metadata_types, known_play_metadata_types
 from music import Music
 from clock import Clock
-from volume import Volume
+from volume import Volume, scaled_volume_percent
+from web_server import DisplayState
 
 class MQTTListener:
     """Class to handle MQTT connections and messages."""
     
     _instance_count = 0
 
-    def __init__(self, topic_root, music_client: Music, clock_client: Clock, volume_client: Volume):
+    def __init__(self, topic_root, music_client: Music, clock_client: Clock, volume_client: Volume, display_state: DisplayState | None = None):
         MQTTListener._instance_count += 1
         self.instance_id = MQTTListener._instance_count
 
         self._music_client = music_client
         self._clock_client = clock_client
         self._volume_client = volume_client
+        self._display_state = display_state
         self._address = None
         
         self.mqtt_client = mqtt.Client()
@@ -127,18 +129,31 @@ class MQTTListener:
 
     def on_message(self, client, userdata, message):
         """Handle incoming MQTT messages."""
+        payload = message.payload.decode("utf-8", errors="replace")
+        if self._display_state is not None:
+            self._display_state.update("last_topic", message.topic)
+            self._display_state.update("last_payload", payload)
+
         if message.topic == self._form_subtopic_topic("cover"):
             self._music_client.display_cover_art(message.payload)
+            if self._display_state is not None:
+                self._display_state.update("cover", "present")
+                self._display_state.update("cover_art", message.payload)
         elif message.topic == self._form_subtopic_topic("volume"):
             self._volume_client.update_volume(message.payload)
+            if self._display_state is not None:
+                self._display_state.update("volume", payload)
+                self._display_state.update("volume_percent", scaled_volume_percent(message.payload))
         elif message.topic == self._form_subtopic_topic("active_end"):
             self._music_client.end_session()
+            if self._display_state is not None:
+                self._display_state.update("status", "idle")
         else:
-            print(message.topic, message.payload)
-            # Handle other metadata types as needed
-            # For example, you could update the display with artist, album, title, etc.
-            # This is where you would implement logic to update the display based on the metadata
-            # For now, we just print the message payload for debugging purposes
+            topic_name = message.topic.rsplit("/", 1)[-1]
+            if self._display_state is not None and topic_name in {"artist", "album", "title", "genre", "client_ip", "active_start", "active_end", "play_start", "play_end"}:
+                self._display_state.update(topic_name, payload)
+            if topic_name not in {"artist", "album", "title", "genre"}:
+                print(message.topic, message.payload)
 
     def _form_subtopic_topic(self, subtopic):
         """Return full topic path given subtopic."""
