@@ -153,7 +153,7 @@ class Volume(Output):
             return
         airplay_volume = volume_tuple[0]
         rescaled_volume = 0
-        if volume_tuple_ != AIRPLAY_MUTE:
+        if airplay_volume != AIRPLAY_MUTE:
             rescaled_volume = self._rescale_volume(airplay_volume, AIRPLAY_MIN, AIRPLAY_MAX)
 
         # Create and display image
