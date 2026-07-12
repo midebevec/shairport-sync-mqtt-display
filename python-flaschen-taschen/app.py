@@ -21,7 +21,7 @@ from web_server import DisplayState, create_app
 
 CONFIG_FILE = Path("/etc/shairport-sync-flaschen/config.yaml")
 # For Local Python Dev
-CONFIG_FILE = Path("~/projects/shairport-sync-mqtt-display/python-flaschen-taschen/config.yaml").expanduser()
+# CONFIG_FILE = Path("~/projects/shairport-sync-mqtt-display/python-flaschen-taschen/config.yaml").expanduser()
 
 def load_configs():
     """Load configuration from YAML file."""
