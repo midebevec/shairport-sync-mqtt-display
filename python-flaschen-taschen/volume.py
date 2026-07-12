@@ -4,6 +4,10 @@ from PIL import Image, ImageDraw
 import threading
 import time
 
+AIRPLAY_MUTE = -144.0
+AIRPLAY_MIN = -30.0
+AIRPLAY_MAX = 0.0
+
 def rescale(value, old_min, old_max, new_min, new_max):
     """
     Linearly rescale a value from one range to another.
@@ -145,7 +149,12 @@ class Volume(Output):
 
         # Extrace and scale volume
         volume_tuple = tuple(float(x.strip()) for x in payload.decode().split(","))
-        rescaled_volume = self._rescale_volume(volume_tuple[1], volume_tuple[2], volume_tuple[3])
+        if len(volume_tuple) != 4:
+            return
+        airplay_volume = volume_tuple[0]
+        rescaled_volume = 0
+        if volume_tuple_ != AIRPLAY_MUTE:
+            rescaled_volume = self._rescale_volume(airplay_volume, AIRPLAY_MIN, AIRPLAY_MAX)
 
         # Create and display image
         self._display_volume(self._create_volume_image(rescaled_volume))
