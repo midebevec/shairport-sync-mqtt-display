@@ -35,25 +35,25 @@ NOW_PLAYING_TEMPLATE = """
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: radial-gradient(circle at top, #111827 0%, #06070a 60%); color: #f5f7fa; padding: 0; min-height:100vh; margin:0; }
-    .page { min-height: 100vh; display:flex; flex-direction:column; justify-content:space-between; padding: 12px 12px 84px; }
-    .shell { flex:1; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 28px; padding: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.28); backdrop-filter: blur(18px); }
-    .content { width:100%; display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; }
-    .cover-shell { width:min(100%, 460px); aspect-ratio:1/1; border-radius:28px; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.12); box-shadow: 0 20px 40px rgba(0,0,0,0.24); }
+    .page { min-height: 100vh; display:flex; flex-direction:column; justify-content:space-between; padding: 8px 8px 78px; }
+    .shell { flex:1; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 12px; box-shadow: 0 24px 60px rgba(0,0,0,0.28); backdrop-filter: blur(18px); }
+    .content { width:100%; display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; }
+    .cover-shell { width:min(100%, 360px); aspect-ratio:1/1; border-radius:22px; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 32px rgba(0,0,0,0.24); }
     .art { width:100%; height:100%; object-fit:cover; display:block; background:#111827; }
     .placeholder { display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:1rem; }
     .eyebrow { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.16em; color:#8fa0b8; margin-bottom:4px; }
     .title { font-size:clamp(1.5rem, 5vw, 2.15rem); line-height:1.06; margin:0; font-weight:700; }
     .subtitle { font-size:0.98rem; color:#cbd5e1; margin:0; line-height:1.45; max-width:560px; }
-    .volume-row { width:min(340px, 100%); margin-top:6px; display:flex; align-items:center; gap:10px; justify-content:center; }
-    .volume-track { flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden; }
+    .volume-row { width:min(300px, 100%); margin-top:2px; display:flex; align-items:center; gap:10px; justify-content:center; }
+    .volume-track { flex:1; height:7px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden; }
     .volume-fill { height:100%; border-radius:999px; background:linear-gradient(90deg, #60a5fa, #818cf8); transition:width 0.25s ease; }
     .volume-value { font-size:0.9rem; color:#cbd5e1; min-width:42px; text-align:right; }
     .fade-highlight { animation: fadePulse 0.7s ease; }
     @keyframes fadePulse { 0% { opacity: 0.25; transform: translateY(2px); } 100% { opacity: 1; transform: translateY(0); } }
     @media (max-width: 700px) {
-      .page { padding: 10px 10px 84px; }
-      .shell { padding: 12px; border-radius: 22px; }
-      .cover-shell { width:min(100%, 460px); border-radius: 22px; }
+      .page { padding: 8px 8px 78px; }
+      .shell { padding: 10px; border-radius: 20px; }
+      .cover-shell { width:min(100%, 320px); border-radius: 20px; }
       .volume-row { width:100%; }
     }
   </style></head>
